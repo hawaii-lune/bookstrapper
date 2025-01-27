@@ -44,8 +44,8 @@ function exports.Throw<A>(ex: string|Types.Exception<A>)
 		finally()
 	end
 
-	catch._ex = if type(ex) == "string" then exports.Exception(ex) else ex
-	error(tostring(ex)) -- so that external catches dont get the export table but instead just a message
+	catch.TryCatch._ex = if type(ex) == "string" then exports.Exception(ex) else ex
+	error() -- so that external catches dont get the export table but instead just a message
 end
 
 function exports.Try<ErrUnion>(tryFn: () -> ()): Types.TryCatch<ErrUnion>

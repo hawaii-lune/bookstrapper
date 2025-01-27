@@ -10,6 +10,7 @@ export type StackInfo = typeof(setmetatable({}::{
 }))
 
 export type Severity = "Log"|"Warning"|"Panic"|"Info"
+export type LogSuppressionType = "None"|"Root"|"Thread"|"All"
 
 export type Logpoint = {
 	Message: string,
@@ -53,6 +54,7 @@ export type BookstrapRunner = {
 	CreateStackTrace: (BookstrapRunner, tracegenMode: "Allowlist"|"All"|"C"?) -> {StackInfo},
 	Exception: <A>(BookstrapRunner, kind: A, msg: string?) -> Exception<A>,
 	DefaultCatchForward: <A>(Exception<A>) -> ()?,
+	LogSuppressionType: LogSuppressionType,
 
 	Exports: {
 		Exception: typeof(setmetatable({}::{

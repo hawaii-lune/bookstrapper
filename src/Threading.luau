@@ -20,7 +20,7 @@ local function createBKSThread<A...>(fn): thread
 	local co = coroutine.create(function(...)
 		local co = coroutine.running()
 		Common.BookstrappedThreads[co] = mainWorker
-		local tc = ThreadExceptionHandler(fn, mainWorker)
+		local tc = ThreadExceptionHandler(fn, mainWorker, false)
 		mainWorker:ExecuteTryCatch(tc, ...)
 		consumsable[co] = nil
 		Common.BookstrappedThreads[co] = nil

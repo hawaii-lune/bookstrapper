@@ -17,6 +17,7 @@ return function(name: string, tryFn: () -> ()): Types.BookstrapRunner
 	runner.TryCatchStack = {}
 	runner.Log = Logger(name)
 	runner.StackAllowList = {}
+	runner.LogSuppressionType = "None"
 
 	function runner.ExecuteTryCatch(
 		self: Types.BookstrapRunner,
@@ -87,7 +88,7 @@ return function(name: string, tryFn: () -> ()): Types.BookstrapRunner
 	end
 
 	runner.Exports = Exports
-	runner.RootHandle = ThreadExceptionHandler(tryFn, runner)
+	runner.RootHandle = ThreadExceptionHandler(tryFn, runner, true)
 
 	return runner
 end
