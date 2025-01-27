@@ -13,7 +13,7 @@ function Common.getBookstrapperFromThread()
 	return Common.BookstrappedThreads[coroutine.running()] or Common.G_PANIC(`Attempt to use a Bookstrapper method outside of a Bookstrapper tracked thread`)
 end
 
-function Common.getTopCatch(bookstrapper: Types.BookstrapRunner)
+function Common.getTryCatchTop(bookstrapper: Types.BookstrapRunner)
 	local catchState = bookstrapper.TryCatchStack[coroutine.running()]
 	if not catchState then Common.G_PANIC("Attempt to use a Bookstrapper method outside of a Bookstrapper tracked thread.") end
 	local top = catchState[#catchState]

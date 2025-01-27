@@ -1,7 +1,9 @@
 local TryCatch = require("./TryCatch")
 
+local TEST_OUTWARDS_PROPEGATION = false
+
 return function(fn, runner)
-	return TryCatch(fn):Catch(nil, function(ex)
+	local tc = TryCatch(fn):Catch(nil, function(ex)
 		if runner.DefaultCatchForward then
 			TryCatch(runner.DefaultCatchForward)
 			:Catch(nil,	function(err)
@@ -21,4 +23,12 @@ return function(fn, runner)
 		table.insert(stack, "[\27[94mStack End\27[39m]\n")
 		runner.Log:write(table.concat(stack, "\n"), "Panic", true)
 	end)
+
+	if TEST_OUTWARDS_PROPEGATION then
+		tc:Finally(function()
+			print("OUTWARDS PROPEGATION TEST", runner.TryCatchStack[coroutine.running()])
+		end)
+	end
+
+	return tc
 end

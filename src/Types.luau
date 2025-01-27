@@ -46,7 +46,7 @@ export type TryCatch<ErrUnion = string> = typeof(setmetatable({}::{
 export type BookstrapRunner = {
 	Name: string,
 	RootHandle: TryCatch<any>,
-	TryCatchStack: {[thread]: {TryCatch}},
+	TryCatchStack: {[thread]: {{TryCatch: TryCatch, FinallyExec: () -> ()?}}},
 	ExecuteTryCatch: (BookstrapRunner, TryCatch<string>, ...any) -> boolean,
 	Log: Logger,
 	StackAllowList: {[string]: true},

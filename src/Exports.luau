@@ -34,8 +34,16 @@ end
 
 function exports.Throw<A>(ex: string|Types.Exception<A>)
 	local bk = Common.getBookstrapperFromThread()
-	local catch = Common.getTopCatch(bk)
+	local catch = Common.getTryCatchTop(bk)
 	if not catch then Common.G_PANIC("Throw executed outside bookstrapped TryCatch") end
+
+	if catch.FinallyExec then
+		local finally = catch.FinallyExec
+		catch.FinallyExec = nil -- stop recursive throws
+
+		finally()
+	end
+
 	catch._ex = if type(ex) == "string" then exports.Exception(ex) else ex
 	error(tostring(ex)) -- so that external catches dont get the export table but instead just a message
 end

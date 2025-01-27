@@ -30,12 +30,13 @@ return function(name: string, tryFn: () -> ()): Types.BookstrapRunner
 			catchStack = {}
 			self.TryCatchStack[co] = catchStack
 		end
-		table.insert(catchStack, catch)
-		local ok, err = pcall(catch._try, ...)
-		local pop = #catchStack
-		table.remove(catchStack, pop)
+		local size = #catchStack
 
-		if pop <= 1 then
+		table.insert(catchStack, {TryCatch = catch, FinallyExec = nil})
+		local ok, err = pcall(catch._try, ...)
+		table.remove(catchStack, size + 1)
+
+		if size <= 0 then
 			self.TryCatchStack[co] = nil
 		end
 
@@ -45,6 +46,10 @@ return function(name: string, tryFn: () -> ()): Types.BookstrapRunner
 		end
 		
 		if ex then
+			if size > 0 then
+				catchStack[size].FinallyExec = catch._finally
+			end
+
 			local handler = catch._catches[ex.Kind] or catch._defaultcatch
 			if handler then handler(ex) end
 		end
