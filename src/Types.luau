@@ -1,4 +1,8 @@
+--!strict
 local DateTime = require("@lune/DateTime")
+local Result = require("./Result")
+
+export type Severity = "Log"|"Warning"|"Panic"|"Info"
 
 export type StackInfo = typeof(setmetatable({}::{
 	Source: string,
@@ -8,9 +12,6 @@ export type StackInfo = typeof(setmetatable({}::{
 }, {}::{
 	__tostring: (StackInfo) -> string
 }))
-
-export type Severity = "Log"|"Warning"|"Panic"|"Info"
-export type LogSuppressionType = "None"|"Root"|"Thread"|"All"
 
 export type Logpoint = {
 	Message: string,
@@ -25,53 +26,23 @@ export type Logger = {
 	history: {Logpoint},
 }
 
-export type Exception<Kind = unknown> = {
-	Kind: Kind,
-	Message: string?,
-	Stack: {StackInfo}
-}
-
-export type TryCatch<ErrUnion = string> = typeof(setmetatable({}::{
-	_try: () -> (),
-	_finally: () -> ()?,
-	_defaultcatch: (Exception<ErrUnion>) -> ()?,
-	_catches: {[ErrUnion]: (Exception<ErrUnion>) -> ()},
-	_ex: Exception?,
-
-	Catch: (TryCatch<ErrUnion>, ex: ErrUnion?, fn: (Exception<ErrUnion>) -> ()) -> TryCatch<ErrUnion>,
-	Finally: (TryCatch<ErrUnion>, fn: () -> ()) -> TryCatch<ErrUnion>,
-}, {}::{
-	__call: (TryCatch<ErrUnion>) -> ()
-}))
-
-export type BookstrapRunner = {
+export type BookstrapRunner<T, E> = {
 	Name: string,
-	RootHandle: TryCatch<any>,
-	TryCatchStack: {[thread]: {{TryCatch: TryCatch, FinallyExec: () -> ()?}}},
-	ExecuteTryCatch: (BookstrapRunner, TryCatch<string>, ...any) -> boolean,
 	Log: Logger,
-	StackAllowList: {[string]: true},
-	CreateStackTrace: (BookstrapRunner, tracegenMode: "Allowlist"|"All"|"C"?) -> {StackInfo},
-	Exception: <A>(BookstrapRunner, kind: A, msg: string?) -> Exception<A>,
-	DefaultCatchForward: <A>(Exception<A>) -> ()?,
-	LogSuppressionType: LogSuppressionType,
+	DefaultCatchForward: (Result.Result<T, E>) -> ()?,
+	PipeResultErrors: boolean,
+	Fn: (argc: number, argv: {string}) -> Result.Result<T, E>,
+	StackAllowlist: {[string]: true},
 
 	Exports: {
-		Exception: typeof(setmetatable({}::{
-			Extend: <A>(kind: A) -> (message: string?) -> Exception<A>
-		}, {}::{
-			__call: (any, message: string) -> Exception
-		})),
-
-		SetExceptionHandler: (fn: (Exception) -> ()) -> (),
-		Throw: <A>(ex: string|Exception<A>) -> (),
-		Try: <ErrUnion>(tryFn: () -> ()) -> TryCatch<ErrUnion>,
 		Write: <A...>(A...) -> (),
 		WriteLine: <A...>(A...) -> (),
 		Warn: <A...>(A...) -> (),
-		Panic: (string?) -> ()
+		Panic: (string|Result.Result<T, E>?) -> (),
+		Result: typeof(Result)
 	},
-	Run: (BookstrapRunner) -> boolean
+	
+	Run: (BookstrapRunner<T, E>) -> Result.Result<T, E>
 }
 
 return nil

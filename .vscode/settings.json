@@ -3,5 +3,8 @@
   "luau-lsp.require.directoryAliases": {
     "@lune/": "~/.lune/.typedefs/0.8.9/"
   },
+  "luau-lsp.fflags.override": {
+    "LuauSolverV2": "false"
+  },
   "luau-lsp.sourcemap.enabled": false
 }

@@ -2,38 +2,9 @@ local Types = require("./Types")
 local task = require("@lune/task")
 
 local Common = {}
-Common.BookstrappedThreads = {}
-Common.ExternalFiles = {}
 
 function Common.sliceDebugName(s: string): string
 	return string.match(s, "%[string \"(.-)\"%]") or s
-end
-
-function Common.getBookstrapperFromThread()
-	return Common.BookstrappedThreads[coroutine.running()] or Common.G_PANIC(`Attempt to use a Bookstrapper method outside of a Bookstrapper tracked thread`)
-end
-
-function Common.getTryCatchTop(bookstrapper: Types.BookstrapRunner)
-	local catchState = bookstrapper.TryCatchStack[coroutine.running()]
-	if not catchState then Common.G_PANIC("Attempt to use a Bookstrapper method outside of a Bookstrapper tracked thread.") end
-	local top = catchState[#catchState]
-	if not top then Common.G_PANIC("TryCatch stack is empty, this is likely an internal bug") end
-	return top
-end
-
--- this cant depend on other methods because it causes an infininte recursion
-function Common.G_PANIC(msg: string?)
-	-- calls panic in the loaded bookstrapper, or just errors if no bookstrapped found
-	-- for thread
-
-	local co = coroutine.running()
-	local bk: Types.BookstrapRunner = Common.BookstrappedThreads[co]
-	if not bk then error(`[WARN: PANIC CALLED FROM UNTRACKED THREAD]; {msg}`) end
-	local catchState = bk.TryCatchStack[coroutine.running()]
-	local catch = catchState and catchState[#catchState]
-	if not catch then error(`[WARN: PANIC CALLED OUTSIDE TRYCATCH]; {msg}`) end
-	local ex = bk:Exception("ThreadPanicException", msg)
-	bk.Exports.Panic(ex)
 end
 
 local stackInfo_MT = {
