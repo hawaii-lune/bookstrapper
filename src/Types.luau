@@ -8,7 +8,9 @@ export type StackInfo = typeof(setmetatable({}::{
 	Source: string,
 	Line: number,
 	Name: string?,
-	IsC: boolean
+	IsC: boolean,
+	RepeatCount: number,
+	TruncationMarker: boolean,
 }, {}::{
 	__tostring: (StackInfo) -> string
 }))

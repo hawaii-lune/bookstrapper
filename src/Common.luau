@@ -29,28 +29,44 @@ function Common.StackInfo(s: string, line: number, name: string?): Types.StackIn
 		Source = s,
 		Line = line,
 		Name = name,
-		IsC = isC
+		IsC = isC,
+		RepeatCount = 1,
+		TruncationMarker = false
 	}
 	setmetatable(stackInfo, stackInfo_MT)
-	table.freeze(stackInfo)
 	return stackInfo
 end
 
 function Common.GenerateStackTrace(filtermode: "Allowlist"|"All"|"C", filter: {[string]: true}?): {Types.StackInfo}
-	local stack = {}
+	local stack = {}::{Types.StackInfo}
 	local level = 0
+	local writeCount = 0
+	local lastStackFunc, lastStack
 
 	repeat
 		level += 1
-		local s, l, n = debug.info(level, "sln")
+		local s, l, n, f  = debug.info(level, "slnf")
+
+		if f == lastStackFunc and lastStack then
+			lastStack.RepeatCount += 1
+			continue
+		end
+
 		if s then
 			if s == "[C]" and filtermode == "Allowlist" then
 				continue
 			elseif filter and not filter[s] and filtermode ~= "All" then
 				continue
 			end
+			writeCount += 1
+			if writeCount == 21 then
+				table.insert(stack, {TruncationMarker = true})
+				break
+			end
 
-			table.insert(stack, Common.StackInfo(s, l, n))
+			lastStackFunc = f
+			lastStack = Common.StackInfo(s, l, n)
+			table.insert(stack, lastStack)
 		end
 	until not s
 

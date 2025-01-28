@@ -32,7 +32,15 @@ function MessageHandler.panicWithTrace<T, E>(msg: string|Result.Result<T, E>?, t
 	table.insert(stack, "[\27[94mStack Begin\27[39m]")
 
 	for i, stackInfo in trace do
-		stack[i+2] = `   \27[92m{tostring(stackInfo)}\27[39m`
+		if stackInfo.TruncationMarker then
+			stack[i+2] = `   \27[90m<TRUNCATED>\27[39m`
+		else
+			if stackInfo.RepeatCount > 1 then
+				stack[i+2] = `   \27[92m{tostring(stackInfo)} \27[90m({stackInfo.RepeatCount}x)\27[39m`
+			else
+				stack[i+2] = `   \27[92m{tostring(stackInfo)}\27[39m`
+			end
+		end
 	end
 	table.insert(stack, "[\27[94mStack End\27[39m]\n")
 	runner.Log:write(table.concat(stack, "\n"), "Panic", true)
