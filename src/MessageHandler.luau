@@ -4,7 +4,7 @@ local Common = require("./Common")
 local Result = require("./Result")
 
 local MessageHandler = {}
-local DEBUGMODE = false
+MessageHandler.DebugMode = false
 
 local function threadTostring(tid: string?): string
 	return if type(tid)=="string" then `thread: {tid}` else tostring(coroutine.running())
@@ -16,16 +16,16 @@ function MessageHandler.result<T, E>(r: Result.Result<T, E>, tID: string?, runne
 	--runner.Log:write("[HINT]: To hide the outermost Result error, set PipeResultErrors to false on the Bookstrapper", "Info", true)
 end
 
-function MessageHandler.panicInternal<T,E>(msg: string|Result.Result<T,E>?, runner: Types.BookstrapRunner<T,E>, tID: string?, throw: boolean): Result.Result<T, string>?
-	-- Throw is used to return a result instead of cutting the thread, its used to raise "Thread panicked while executing" outside of pcalls
-	-- Export.panic will always throw.
-
+function MessageHandler.panicWithTrace<T, E>(msg: string|Result.Result<T, E>?, trace: {Types.StackInfo}?, runner: Types.BookstrapRunner<T, E>, tID: string?, throw: boolean)
 	tID = threadTostring(tID)
 
 	if not msg then msg = "No output from Lua." end
 	if typeof(msg) == "table" then msg = msg:unwrapErr() end
 
-	local trace = Common.GenerateStackTrace(if DEBUGMODE then "All" else "Allowlist", runner.StackAllowlist)
+	if not trace then
+		trace = Common.GenerateStackTrace(if MessageHandler.DebugMode then "All" else "Allowlist", runner.StackAllowlist)
+	end
+
 	local stackSize = #trace + 3
 	local stack = table.create(stackSize)
 	table.insert(stack, `\x07\27[91m{tID} panicked with {msg}\27[39m`)

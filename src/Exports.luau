@@ -27,9 +27,9 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 		runner.Log:write(`{flattenArgs(...)}\n`, "Warning", true)
 	end
 
-	function exports.Panic(msg: string|Result.Result<T, E>?)
-		local tID = runner.Threading.owned[coroutine.running()]
-		MessageHandler.panicInternal(msg, runner, tID, true)
+	function exports.Panic<A>(msg: A)
+		-- just pipes a result msg if applicabl
+		error(`"{tostring(msg)}"`, -1)
 	end
 
 	exports.Result = Result(exports.Panic)

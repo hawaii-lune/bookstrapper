@@ -1,6 +1,7 @@
 local Result = require("./Result")
 local Types = require("./Types")
 local MessageHandler = require("./MessageHandler")
+local Common = require("./Common")
 local task = require("@lune/task")
 
 -- A threading libraries that handles exit outs properly rather than
@@ -12,9 +13,26 @@ local function IS_LIKELY_RESULT(r: any)
 	return type(r) == "table" and r.is ~= nil
 end
 
+local function resultXpcallTry(resultImpl, runner, tID, fn, ...)
+	local trace
+	local ok, body = xpcall(fn, function(err)
+		trace = Common.GenerateStackTrace(if MessageHandler.DebugMode then "All" else "Allowlist", runner.StackAllowlist)
+		return err
+	end)
+
+	if not ok then 
+		local errR = resultImpl.Err(body)
+		MessageHandler.panicWithTrace(errR, trace, runner, tID, false)
+		return errR
+	end
+
+	return resultImpl.Ok(body)
+end
+
 return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 	local threading = {}
 	local ownershipSize = 0
+	local closeForWaitThread
 	threading.owned = {} :: {[thread]: string?}
 
 	function threading.createRunner<U,V,A...>(
@@ -26,7 +44,7 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 
 		local Result = runner.Exports.Result
 		return function(...)
-			local rA = Result.try(fn, ...)
+			local rA = resultXpcallTry(Result, runner, tIdentifier, fn, ...)
 			-- close thread from threading
 			if threading.owned[coroutine.running()] then
 				ownershipSize -= 1
