@@ -2,7 +2,7 @@ local Types = require("./Types")
 local Exports = require("./Exports")
 local Logger = require("./Logger")
 local Result = require("./Result")
-local MessageHandler = require("./MessageHandler")
+local Threading = require("./Threading")
 local process = require("@lune/process")
 
 -- we need to set the root log here as its how we can tell if we're working with
@@ -15,25 +15,15 @@ return function<T,E>(name: string, tryFn: (argc: number, argv: {string}) -> Resu
 	runner.Log = Logger(name)
 	runner.PipeResultErrors = true
 	runner.StackAllowlist = {}
+	runner.Threading = Threading(runner)
 
 	function runner.Run(self: Types.BookstrapRunner<T, E>): Result.Result<T, E>
 		local args = process.args
-		local r = self.Exports.Result.try(tryFn, #args, args)
-		r = if r:isOk() then r:unwrap() else r
-
-		if not r or type(r) ~= "table" or not r.isErr then
-			MessageHandler.panicInternal(`Bookstrapper main func did not return a Result<T, E>`, runner)
-		end
-
-		if r:isErr() and self.PipeResultErrors then
-			MessageHandler.result(r, self)
-		end
-
-		return r
+		return self.Fn(#args, args)
 	end
 
 	runner.Exports = Exports(runner)
-	runner.Fn = tryFn
+	runner.Fn = runner.Threading.createRunner(name, true, true, tryFn)
 
 	return runner
 end

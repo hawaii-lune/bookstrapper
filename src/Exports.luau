@@ -28,10 +28,12 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 	end
 
 	function exports.Panic(msg: string|Result.Result<T, E>?)
-		MessageHandler.panicInternal(msg, runner)
+		local tID = runner.Threading.owned[coroutine.running()]
+		MessageHandler.panicInternal(msg, runner, tID, true)
 	end
 
 	exports.Result = Result(exports.Panic)
+	exports.Threading = runner.Threading.Exports
 
 	table.freeze(exports)
 	return exports

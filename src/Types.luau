@@ -32,6 +32,7 @@ export type BookstrapRunner<T, E> = {
 	PipeResultErrors: boolean,
 	Fn: (argc: number, argv: {string}) -> Result.Result<T, E>,
 	StackAllowlist: {[string]: true},
+	Threading: any,
 
 	Exports: {
 		Write: <A...>(A...) -> (),

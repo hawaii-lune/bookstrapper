@@ -1,5 +1,4 @@
 local Types = require("./Types")
-local task = require("@lune/task")
 
 local Common = {}
 
@@ -56,11 +55,6 @@ function Common.GenerateStackTrace(filtermode: "Allowlist"|"All"|"C", filter: {[
 	until not s
 
 	return stack
-end
-
-function Common.disposeRunningThread()
-	task.defer(task.cancel, coroutine.running())
-	coroutine.yield()
 end
 
 return Common
