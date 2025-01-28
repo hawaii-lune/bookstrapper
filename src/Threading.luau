@@ -14,6 +14,7 @@ end
 
 return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 	local threading = {}
+	local ownershipSize = 0
 	threading.owned = {} :: {[thread]: string?}
 
 	function threading.createRunner<U,V,A...>(
@@ -27,7 +28,14 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 		return function(...)
 			local rA = Result.try(fn, ...)
 			-- close thread from threading
-			threading.owned[coroutine.running()] = nil
+			if threading.owned[coroutine.running()] then
+				ownershipSize -= 1
+				threading.owned[coroutine.running()] = nil
+
+				if ownershipSize == 0 and closeForWaitThread then
+					task.defer(closeForWaitThread)
+				end
+			end
 
 			if rA:isErr() then
 				if emitInitErr then MessageHandler.result(rA, tIdentifier, runner) end
@@ -54,8 +62,14 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 		end
 
 		local t = coroutine.create(threading.createRunner(nil, false, true, fnOrThread::(A...) -> Result.Result<T,E>))
+		ownershipSize += 1
 		threading.owned[t] = true
 		return t
+	end
+
+	function threading.WaitForClose()
+		closeForWaitThread = coroutine.running()
+		return coroutine.yield()
 	end
 
 	local exported = {}
