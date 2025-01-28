@@ -7,7 +7,8 @@ local MessageHandler = {}
 
 function MessageHandler.result<T, E>(r: Result.Result<T, E>, runner: Types.BookstrapRunner<T, E>)
 	if not runner.PipeResultErrors or r:isOk() then return end
-	runner.Log:write(`\27[91mThread {coroutine.running()} raised Err result {r:unwrapErr()}.\27[39m\n`, "Panic", true)
+	runner.Log:write(`\27[91mMain thread raised Err: {r:unwrapErr()}\27[39m\n`, "Panic", true)
+	--runner.Log:write("[HINT]: To hide the outermost Result error, set PipeResultErrors to false on the Bookstrapper", "Info", true)
 end
 
 function MessageHandler.panicInternal<T,E>(msg: string|Result.Result<T,E>?, runner: Types.BookstrapRunner<T,E>)
@@ -17,7 +18,7 @@ function MessageHandler.panicInternal<T,E>(msg: string|Result.Result<T,E>?, runn
 	local trace = Common.GenerateStackTrace("Allowlist", runner.StackAllowlist)
 	local stackSize = #trace + 3
 	local stack = table.create(stackSize)
-	table.insert(stack, `\x07\27[91mThread {coroutine.running()} panicked with {msg}\27[39m`)
+	table.insert(stack, `\x07\27[91m{coroutine.running()} panicked with {msg}\27[39m`)
 	table.insert(stack, "[\27[94mStack Begin\27[39m]")
 
 	for i, stackInfo in trace do
@@ -26,7 +27,7 @@ function MessageHandler.panicInternal<T,E>(msg: string|Result.Result<T,E>?, runn
 	table.insert(stack, "[\27[94mStack End\27[39m]\n")
 	runner.Log:write(table.concat(stack, "\n"), "Panic", true)
 	
-	Common.disposeRunningThread()
+	error("Thread panicked while executing", -1)
 end
 
 return MessageHandler

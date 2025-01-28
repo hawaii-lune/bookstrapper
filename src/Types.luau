@@ -29,7 +29,6 @@ export type Logger = {
 export type BookstrapRunner<T, E> = {
 	Name: string,
 	Log: Logger,
-	DefaultCatchForward: (Result.Result<T, E>) -> ()?,
 	PipeResultErrors: boolean,
 	Fn: (argc: number, argv: {string}) -> Result.Result<T, E>,
 	StackAllowlist: {[string]: true},
@@ -39,7 +38,7 @@ export type BookstrapRunner<T, E> = {
 		WriteLine: <A...>(A...) -> (),
 		Warn: <A...>(A...) -> (),
 		Panic: (string|Result.Result<T, E>?) -> (),
-		Result: typeof(Result)
+		Result: typeof(Result())
 	},
 	
 	Run: (BookstrapRunner<T, E>) -> Result.Result<T, E>

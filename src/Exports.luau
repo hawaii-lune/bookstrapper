@@ -31,7 +31,7 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 		MessageHandler.panicInternal(msg, runner)
 	end
 
-	exports.Result = Result
+	exports.Result = Result(exports.Panic)
 
 	table.freeze(exports)
 	return exports

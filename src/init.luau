@@ -18,11 +18,11 @@ return function<T,E>(name: string, tryFn: (argc: number, argv: {string}) -> Resu
 
 	function runner.Run(self: Types.BookstrapRunner<T, E>): Result.Result<T, E>
 		local args = process.args
-		local r = Result.try(tryFn, #args, args)
+		local r = self.Exports.Result.try(tryFn, #args, args)
 		r = if r:isOk() then r:unwrap() else r
 
 		if not r or type(r) ~= "table" or not r.isErr then
-			MessageHandler.panicInternal(`Bookstrapper likely did not return a Result<T, E>`, runner)
+			MessageHandler.panicInternal(`Bookstrapper main func did not return a Result<T, E>`, runner)
 		end
 
 		if r:isErr() and self.PipeResultErrors then
