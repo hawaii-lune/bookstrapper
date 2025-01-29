@@ -9,6 +9,7 @@ export type StackInfo = typeof(setmetatable({}::{
 	Line: number,
 	Name: string?,
 	IsC: boolean,
+	FileSource: string?,
 	RepeatCount: number,
 	TruncationMarker: boolean,
 }, {}::{
@@ -34,6 +35,7 @@ export type BookstrapRunner<T, E> = {
 	PipeResultErrors: boolean,
 	Fn: (argc: number, argv: {string}) -> Result.Result<T, E>,
 	StackAllowlist: {[string]: true},
+	FileNameAssoc: {[string]: string}, -- Not used yet
 	Threading: any,
 
 	Exports: {

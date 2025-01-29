@@ -23,7 +23,7 @@ function MessageHandler.panicWithTrace<T, E>(msg: string|Result.Result<T, E>?, t
 	if typeof(msg) == "table" then msg = msg:unwrapErr() end
 
 	if not trace then
-		trace = Common.GenerateStackTrace(if MessageHandler.DebugMode then "All" else "Allowlist", runner.StackAllowlist)
+		trace = Common.GenerateStackTrace(if MessageHandler.DebugMode then "All" else "Allowlist", runner.StackAllowlist, runner.FileNameAssoc)
 	end
 
 	local stackSize = #trace + 3
@@ -32,15 +32,22 @@ function MessageHandler.panicWithTrace<T, E>(msg: string|Result.Result<T, E>?, t
 	table.insert(stack, "[\27[94mStack Begin\27[39m]")
 
 	for i, stackInfo in trace do
+		local msg
 		if stackInfo.TruncationMarker then
-			stack[i+2] = `   \27[90m<TRUNCATED>\27[39m`
+			msg = `   \27[90m<TRUNCATED>\27[39m`
 		else
 			if stackInfo.RepeatCount > 1 then
-				stack[i+2] = `   \27[92m{tostring(stackInfo)} \27[90m({stackInfo.RepeatCount}x)\27[39m`
+				msg = `   \27[92m{tostring(stackInfo)} \27[90m({stackInfo.RepeatCount}x)\27[39m`
 			else
-				stack[i+2] = `   \27[92m{tostring(stackInfo)}\27[39m`
+				msg = `   \27[92m{tostring(stackInfo)}\27[39m`
 			end
 		end
+
+		if stackInfo.FileSource then
+			msg = `{msg}  \27[90msrc: {stackInfo.FileSource}:{stackInfo.Line}\27[39m`
+		end
+
+		stack[i + 2] = msg
 	end
 	table.insert(stack, "[\27[94mStack End\27[39m]\n")
 	runner.Log:write(table.concat(stack, "\n"), "Panic", true)

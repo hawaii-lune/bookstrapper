@@ -16,7 +16,7 @@ end
 local function resultXpcallTry(resultImpl, runner, tID, fn, ...)
 	local trace
 	local ok, body = xpcall(fn, function(err)
-		trace = Common.GenerateStackTrace(if MessageHandler.DebugMode then "All" else "Allowlist", runner.StackAllowlist)
+		trace = Common.GenerateStackTrace(if MessageHandler.DebugMode then "All" else "Allowlist", runner.StackAllowlist, runner.FileNameAssoc)
 		return err
 	end)
 

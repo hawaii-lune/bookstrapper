@@ -15,6 +15,7 @@ return function<T,E>(name: string, tryFn: (argc: number, argv: {string}) -> Resu
 	runner.Log = Logger(name)
 	runner.PipeResultErrors = true
 	runner.StackAllowlist = {}
+	runner.FileNameAssoc = {}
 	runner.Threading = Threading(runner)
 
 	function runner.Run(self: Types.BookstrapRunner<T, E>): Result.Result<T, E>

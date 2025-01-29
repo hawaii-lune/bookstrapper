@@ -20,7 +20,7 @@ local stackInfo_MT = {
 	end
 }
 
-function Common.StackInfo(s: string, line: number, name: string?): Types.StackInfo
+function Common.StackInfo(s: string, line: number, name: string?, filePath: string?): Types.StackInfo
 	local isC = s == "[C]"
 	if not isC then
 		s = string.match(s, "%[string \"(.-)\"%]") or s
@@ -31,13 +31,14 @@ function Common.StackInfo(s: string, line: number, name: string?): Types.StackIn
 		Name = name,
 		IsC = isC,
 		RepeatCount = 1,
+		FileSource = filePath,
 		TruncationMarker = false
 	}
 	setmetatable(stackInfo, stackInfo_MT)
 	return stackInfo
 end
 
-function Common.GenerateStackTrace(filtermode: "Allowlist"|"All"|"C", filter: {[string]: true}?): {Types.StackInfo}
+function Common.GenerateStackTrace(filtermode: "Allowlist"|"All"|"C", filter: {[string]: true}?, filePaths: {[string]: string}): {Types.StackInfo}
 	local stack = {}::{Types.StackInfo}
 	local level = 0
 	local writeCount = 0
@@ -65,7 +66,7 @@ function Common.GenerateStackTrace(filtermode: "Allowlist"|"All"|"C", filter: {[
 			end
 
 			lastStackFunc = f
-			lastStack = Common.StackInfo(s, l, n)
+			lastStack = Common.StackInfo(s, l, n, filePaths[s])
 			table.insert(stack, lastStack)
 		end
 	until not s
