@@ -5,6 +5,9 @@ local Result = require("./Result")
 local Threading = require("./Threading")
 local process = require("@lune/process")
 
+export type Bookstrapper<T, E> = Types.BookstrapRunner<T, E>
+export type Result<T,E> = Result.Result<T, E>
+
 -- we need to set the root log here as its how we can tell if we're working with
 -- the init file or a shorthand
 -- if its a shorthand then all log info is pointless
@@ -13,7 +16,7 @@ return function<T,E>(name: string, tryFn: (argc: number, argv: {string}) -> Resu
 	local runner = {}::Types.BookstrapRunner<T,E>
 	runner.Name = name
 	runner.Log = Logger(name)
-	runner.PipeResultErrors = true
+	runner.PipeResultErrorMode = "Main"
 	runner.StackAllowlist = {}
 	runner.FileNameAssoc = {}
 	runner.Threading = Threading(runner)
@@ -24,7 +27,7 @@ return function<T,E>(name: string, tryFn: (argc: number, argv: {string}) -> Resu
 	end
 
 	runner.Exports = Exports(runner)
-	runner.Fn = runner.Threading.createRunner(name, true, true, tryFn)
+	runner.Fn = runner.Threading.createRunner(name, true, true, "Main", tryFn)
 
 	return runner
 end

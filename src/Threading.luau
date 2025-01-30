@@ -39,6 +39,7 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 		tIdentifier: string?,
 		requireResultReturn: boolean,
 		emitInitErr: boolean,
+		filterMode: Types.PipeResultErrorMode,
 		fn: (A...) -> Result.Result<U, V>
 	): (A...) -> Result.Result<U,V>
 
@@ -56,7 +57,7 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 			end
 
 			if rA:isErr() then
-				if emitInitErr then MessageHandler.result(rA, tIdentifier, runner) end
+				if emitInitErr then MessageHandler.result(rA, tIdentifier, filterMode, runner) end
 				return rA
 			end
 
@@ -64,8 +65,10 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 			local isResult = IS_LIKELY_RESULT(okVal)
 			if not isResult and requireResultReturn then
 				rA = Result.Err("thread did not return a Result as required.")
-				if emitInitErr then MessageHandler.result(rA, tIdentifier, runner) end
+				if emitInitErr then MessageHandler.result(rA, tIdentifier, filterMode, runner) end
 				return rA
+			elseif isResult and okVal:isErr() then
+				MessageHandler.result(okVal, tIdentifier, filterMode, runner)
 			end
 
 			return okVal
@@ -79,7 +82,7 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 			return fnOrThread
 		end
 
-		local t = coroutine.create(threading.createRunner(nil, false, true, fnOrThread::(A...) -> Result.Result<T,E>))
+		local t = coroutine.create(threading.createRunner(nil, false, true, "Threading", fnOrThread::(A...) -> Result.Result<T,E>))
 		ownershipSize += 1
 		threading.owned[t] = true
 		return t
@@ -104,7 +107,7 @@ return function<T,E>(runner: Types.BookstrapRunner<T,E>)
 		return task.delay(init, threading.allocThreadForRunner(fnOrThread), ...)
 	end
 
-	function exported.Create<T, E, A...>(init: number, fnOrThread: (A...) -> Result.Result<T, E>, ...:A...): thread
+	function exported.Create<T, E, A...>(init: number, fnOrThread: (A...) -> Result.Result<T, E>): thread
 		return threading.allocThreadForRunner(fnOrThread)
 	end
 

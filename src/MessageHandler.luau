@@ -10,10 +10,12 @@ local function threadTostring(tid: string?): string
 	return if type(tid)=="string" then `thread: {tid}` else tostring(coroutine.running())
 end
 
-function MessageHandler.result<T, E>(r: Result.Result<T, E>, tID: string?, runner: Types.BookstrapRunner<T, E>)
-	if not runner.PipeResultErrors or r:isOk() then return end
-	runner.Log:write(`\27[91m{threadTostring(tID)} raised Err: {r:unwrapErr()}\27[39m\n`, "Panic", true)
-	--runner.Log:write("[HINT]: To hide the outermost Result error, set PipeResultErrors to false on the Bookstrapper", "Info", true)
+function MessageHandler.result<T, E>(r: Result.Result<T, E>, tID: string?, filter: Types.PipeResultErrorMode, runner: Types.BookstrapRunner<T, E>)
+	if r:isOk() then return end
+	if runner.PipeResultErrorMode == "All" or runner.PipeResultErrorMode == filter then
+		runner.Log:write(`\27[91m{threadTostring(tID)} raised Err: {r:unwrapErr()}\27[39m\n`, "Panic", true)
+		--runner.Log:write("[HINT]: To hide the outermost Result error, set PipeResultErrors to false on the Bookstrapper", "Info", true)
+	end
 end
 
 function MessageHandler.panicWithTrace<T, E>(msg: string|Result.Result<T, E>?, trace: {Types.StackInfo}?, runner: Types.BookstrapRunner<T, E>, tID: string?, throw: boolean)
